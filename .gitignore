@@ -1,2 +1,24 @@
+
+# Data files
 *.csv
 *.pkl
+
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Environment files
+.env
+venv/
+.venv/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
