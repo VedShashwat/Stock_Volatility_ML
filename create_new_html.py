@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+html_content = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -460,14 +460,9 @@
                 <h4>Methodology & Data Sources</h4>
                 <ul>
                     <li><strong>Algorithm:</strong> Random Forest Classifier with 100 decision trees</li>
-                    <li><strong>Features:</strong> 11 advanced market indicators including:
-                        <ul style="margin-top: 5px; margin-left: 15px;">
-                            <li>Core Metrics: Open, High, Low, Close, Volume, Gold Price</li>
-                            <li>Technical Indicators: MA-5, MA-20, ROC, Price Range, Volume Change</li>
-                        </ul>
-                    </li>
+                    <li><strong>Features:</strong> 6 core market indicators (Open, High, Low, Close, Volume, Gold Price)</li>
                     <li><strong>Data Source:</strong> Yahoo Finance API (90-day historical window)</li>
-                    <li><strong>Technical Analysis:</strong> Moving Averages for trend detection, Rate of Change for momentum, Price Range for intraday volatility</li>
+                    <li><strong>Technical Indicators:</strong> Moving Averages (MA-5, MA-20), Rate of Change (ROC), Price Range, Volume Analysis</li>
                     <li><strong>Gold Correlation:</strong> Gold futures (GC=F) used as market sentiment indicator</li>
                     <li><strong>Output Classes:</strong> Low, Medium, High volatility classification</li>
                 </ul>
@@ -586,15 +581,15 @@
                                 </div>
                                 <div class="model-stat">
                                     <div class="model-stat-label">Input Features</div>
-                                    <div class="model-stat-value">11</div>
+                                    <div class="model-stat-value">6</div>
                                 </div>
                                 <div class="model-stat">
                                     <div class="model-stat-label">Test Accuracy</div>
-                                    <div class="model-stat-value">55.7%</div>
+                                    <div class="model-stat-value">53.5%</div>
                                 </div>
                                 <div class="model-stat">
                                     <div class="model-stat-label">F1 Score</div>
-                                    <div class="model-stat-value">54.7%</div>
+                                    <div class="model-stat-value">52.5%</div>
                                 </div>
                             </div>
                         </div>
@@ -759,3 +754,9 @@
     </script>
 </body>
 </html>
+"""
+
+with open('templates/index.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print("HTML file created successfully!")

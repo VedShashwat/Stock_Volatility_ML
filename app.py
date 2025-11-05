@@ -8,15 +8,16 @@ from datetime import datetime
 app = Flask(__name__)
 model = joblib.load("rf_volatility_model.pkl")
 
-FEATURE_NAMES = ["Open", "High", "Low", "Close", "Volume", "Gold_Close"]
+FEATURE_NAMES = ["Open", "High", "Low", "Close", "Volume", "Gold_Close", 
+                 "MA_5", "MA_20", "ROC", "Price_Range", "Volume_Change"]
 FEATURE_IMPORTANCE = model.feature_importances_
 
 MODEL_INFO = {
     "algorithm": "Random Forest Classifier",
     "n_estimators": 100,
-    "features_count": 6,
-    "accuracy": 0.5345,
-    "f1_score": 0.5248
+    "features_count": 11,
+    "accuracy": 0.5567,  # Updated from enhanced model
+    "f1_score": 0.5472   # Updated from enhanced model
 }
 
 def calculate_technical_indicators(stock_data):
@@ -44,6 +45,14 @@ def get_latest_data(ticker):
         if stock_data.empty:
             return None, "No data found for this ticker"
         stock_data.reset_index(inplace=True)
+        
+        # Calculate technical indicators for the dataset
+        stock_data["MA_5"] = stock_data["Close"].rolling(window=5).mean()
+        stock_data["MA_20"] = stock_data["Close"].rolling(window=20).mean()
+        stock_data["ROC"] = stock_data["Close"].pct_change(periods=5) * 100
+        stock_data["Price_Range"] = stock_data["High"] - stock_data["Low"]
+        stock_data["Volume_Change"] = stock_data["Volume"].pct_change() * 100
+        
         latest_stock = stock_data.iloc[-1]
         gold = yf.Ticker("GC=F")
         gold_data = gold.history(period="90d")
@@ -66,6 +75,11 @@ def get_latest_data(ticker):
             "close": float(latest_stock["Close"]),
             "volume": float(latest_stock["Volume"]),
             "gold_close": float(gold_value),
+            "ma_5": float(latest_stock["MA_5"]) if not pd.isna(latest_stock["MA_5"]) else 0,
+            "ma_20": float(latest_stock["MA_20"]) if not pd.isna(latest_stock["MA_20"]) else 0,
+            "roc": float(latest_stock["ROC"]) if not pd.isna(latest_stock["ROC"]) else 0,
+            "price_range": float(latest_stock["Price_Range"]),
+            "volume_change": float(latest_stock["Volume_Change"]) if not pd.isna(latest_stock["Volume_Change"]) else 0,
             "technical_indicators": tech_indicators,
             "historical_volatility": float(historical_volatility),
             "price_change_pct": float((latest_stock["Close"] - latest_stock["Open"]) / latest_stock["Open"] * 100)
@@ -74,10 +88,15 @@ def get_latest_data(ticker):
         return None, str(e)
 
 def predict_volatility(data):
-    feature_vector = np.array([[
+    import pandas as pd
+    feature_values = [[
         data["open"], data["high"], data["low"], 
-        data["close"], data["volume"], data["gold_close"]
-    ]])
+        data["close"], data["volume"], data["gold_close"],
+        data.get("ma_5", 0), data.get("ma_20", 0), 
+        data.get("roc", 0), data.get("price_range", 0), 
+        data.get("volume_change", 0)
+    ]]
+    feature_vector = pd.DataFrame(feature_values, columns=FEATURE_NAMES)
     prediction = model.predict(feature_vector)[0]
     probabilities = model.predict_proba(feature_vector)[0]
     labels = {0: "Low", 1: "Medium", 2: "High"}
@@ -94,7 +113,13 @@ def predict_volatility(data):
     }
 
 def get_feature_contributions(data):
-    feature_values = [data["open"], data["high"], data["low"], data["close"], data["volume"], data["gold_close"]]
+    feature_values = [
+        data["open"], data["high"], data["low"], data["close"], 
+        data["volume"], data["gold_close"],
+        data.get("ma_5", 0), data.get("ma_20", 0),
+        data.get("roc", 0), data.get("price_range", 0),
+        data.get("volume_change", 0)
+    ]
     normalized_contributions = []
     for i, (name, value, importance) in enumerate(zip(FEATURE_NAMES, feature_values, FEATURE_IMPORTANCE)):
         normalized_contributions.append({
